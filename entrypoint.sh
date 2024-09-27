@@ -278,10 +278,12 @@ zulipConfiguration() {
            [ "$setting_key" = "AUTH_LDAP_USER_FLAGS_BY_GROUP" ] || \
            [ "$setting_key" = "AUTH_LDAP_GROUP_TYPE" ] || \
            [ "$setting_key" = "AUTH_LDAP_ADVANCED_REALM_ACCESS_CONTROL" ] || \
+           [ "$setting_key" = "LDAP_SYNCHRONIZED_GROUPS_BY_REALM" ] || \
            [ "$setting_key" = "SOCIAL_AUTH_OIDC_ENABLED_IDPS" ] || \
            [ "$setting_key" = "SOCIAL_AUTH_SAML_ENABLED_IDPS" ] || \
            [ "$setting_key" = "SOCIAL_AUTH_SAML_ORG_INFO" ] || \
            { [ "$setting_key" = "LDAP_APPEND_DOMAIN" ] && [ "$setting_var" = "None" ]; } || \
+           [ "$setting_key" = "SCIM_CONFIG" ] || \
            [ "$setting_key" = "SECURE_PROXY_SSL_HEADER" ] || \
            [[ "$setting_key" = "CSRF_"* ]] || \
            [ "$setting_key" = "REALM_HOSTS" ] || \
@@ -455,6 +457,11 @@ appRun() {
     echo ""
     exec supervisord -n -c "/etc/supervisor/supervisord.conf"
 }
+appInit() {
+    echo "=== Running initial setup ==="
+    initialConfiguration
+    bootstrappingEnvironment
+}
 appManagePy() {
     COMMAND="$1"
     shift 1
@@ -541,6 +548,7 @@ appHelp() {
     echo "> app:restore  - Restore backups of Zulip instances"
     echo "> app:certs    - Create self-signed certificates"
     echo "> app:run      - Run the Zulip server"
+    echo "> app:init     - Run inital setup of Zulip server"
     echo "> [COMMAND]    - Run given command with arguments in shell"
 }
 appVersion() {
@@ -554,6 +562,9 @@ appVersion() {
 case "$1" in
     app:run)
         appRun
+    ;;
+    app:init)
+        appInit
     ;;
     app:managepy)
         shift 1
